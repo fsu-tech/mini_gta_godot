@@ -8,8 +8,16 @@ extends CharacterBody3D
 @export var steering_response := 2.2
 @export var interaction_distance := 3.5
 @export var max_health := 180.0
+@export var ramp_jump_min_speed := 7.5
+@export var ramp_jump_threshold := 0.055
+@export var ramp_jump_strength := 0.55
+@export var ramp_jump_max_velocity := 0.8
+@export var ramp_min_climb_distance := 1.4
+@export var ramp_max_incline := 0.22
+@export var fall_recovery_distance := 0.65
 
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
+@onready var car_model: Node3D = $Model
 
 var controlled := false
 var gravity := 18.0
@@ -18,13 +26,24 @@ var current_steering := 0.0
 var wheel_nodes: Array[Node3D] = []
 var health := 180.0
 var damage_smoke: GPUParticles3D
+var previous_uphill_amount := 0.0
+var ramp_climb_distance := 0.0
+var last_safe_position: Vector3
+var last_safe_rotation_y := 0.0
+var has_safe_position := false
+var model_base_position: Vector3
+var visual_bounce_height := 0.0
+var visual_bounce_velocity := 0.0
 
 func _ready() -> void:
 	health = max_health
 	set_meta("impact_material", "metal")
-	# Mantiene el vehículo pegado a pendientes y pequeños desniveles.
-	floor_snap_length = 1.2
-	floor_max_angle = deg_to_rad(55.0)
+	model_base_position = car_model.position
+	# Un ajuste corto absorbe irregularidades pequeñas, pero permite despegar
+	# cuando el coche corona una elevación a suficiente velocidad.
+	floor_snap_length = 1.0
+	# Las pendientes normales son suelo; bordillos y laterales pronunciados son paredes.
+	floor_max_angle = deg_to_rad(22.0)
 	floor_stop_on_slope = false
 	for child in $Model.find_children("*", "Node3D", true, false):
 		var wheel := child as Node3D
@@ -73,10 +92,42 @@ func set_controlled(value: bool) -> void:
 		camera.current = true
 
 func _physics_process(delta: float) -> void:
-	if not is_on_floor():
+	var forward := -global_transform.basis.z
+	var was_on_floor := is_on_floor()
+	var uphill_amount := 0.0
+	var floor_normal_y := 1.0
+	if was_on_floor:
+		var floor_normal := get_floor_normal()
+		floor_normal_y = floor_normal.y
+		uphill_amount = maxf(-forward.dot(floor_normal), 0.0)
+	var gentle_road_ramp := (
+		was_on_floor
+		and uphill_amount >= ramp_jump_threshold
+		and uphill_amount <= ramp_max_incline
+		and floor_normal_y >= 0.95
+	)
+	var reached_ramp_crest := (
+		was_on_floor
+		and absf(forward_speed) >= ramp_jump_min_speed
+		and ramp_climb_distance >= ramp_min_climb_distance
+		and previous_uphill_amount >= ramp_jump_threshold
+		and uphill_amount < previous_uphill_amount * 0.42
+		and floor_normal_y >= 0.985
+	)
+	if gentle_road_ramp:
+		ramp_climb_distance += absf(forward_speed) * delta
+	elif not reached_ramp_crest:
+		ramp_climb_distance = 0.0
+	if reached_ramp_crest:
+		# El bote es visual: el collider nunca abandona la carretera.
+		visual_bounce_velocity = minf(absf(forward_speed) * ramp_jump_strength * 0.1, ramp_jump_max_velocity)
+		ramp_climb_distance = 0.0
+	elif not was_on_floor:
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -4.0
+		floor_snap_length = 1.0
+	previous_uphill_amount = uphill_amount
 
 	if controlled:
 		var steering_input := Input.get_axis("move_right", "move_left") + float(Input.is_key_pressed(KEY_LEFT)) - float(Input.is_key_pressed(KEY_RIGHT))
@@ -93,7 +144,7 @@ func _physics_process(delta: float) -> void:
 		var rate := braking if is_zero_approx(throttle) else acceleration
 		forward_speed = move_toward(forward_speed, target_speed, rate * delta)
 
-		var speed_ratio: float = clamp(abs(forward_speed) / max_speed, 0.0, 1.0)
+		var speed_ratio: float = clamp(abs(forward_speed) / maxf(max_speed, 0.001), 0.0, 1.0)
 		if speed_ratio > 0.03:
 			var direction_sign: float = signf(forward_speed)
 			rotate_y(current_steering * steering_speed * direction_sign * (0.25 + speed_ratio * 0.75) * delta)
@@ -101,11 +152,35 @@ func _physics_process(delta: float) -> void:
 		forward_speed = move_toward(forward_speed, 0.0, braking * delta)
 		current_steering = move_toward(current_steering, 0.0, steering_response * delta)
 
-	var forward := -global_transform.basis.z
 	velocity.x = forward.x * forward_speed
 	velocity.z = forward.z * forward_speed
 	move_and_slide()
-	apply_floor_snap()
+	if is_on_floor() and get_floor_normal().y >= 0.92:
+		last_safe_position = global_position
+		last_safe_rotation_y = rotation.y
+		has_safe_position = true
+	var fell_below_safe_road := has_safe_position and global_position.y < last_safe_position.y - fall_recovery_distance
+	var fell_before_first_safe_point := not has_safe_position and global_position.y < -1.0
+	if fell_below_safe_road or fell_before_first_safe_point:
+		_recover_from_fall()
+		return
+	if velocity.y <= 0.0:
+		apply_floor_snap()
+	visual_bounce_velocity -= 3.8 * delta
+	visual_bounce_height = maxf(visual_bounce_height + visual_bounce_velocity * delta, 0.0)
+	if is_zero_approx(visual_bounce_height) and visual_bounce_velocity < 0.0:
+		visual_bounce_velocity = 0.0
+	car_model.position = model_base_position + Vector3.UP * visual_bounce_height
+	var target_visual_pitch := 0.0
+	var target_visual_roll := 0.0
+	if is_on_floor():
+		var local_floor_normal := global_transform.basis.inverse() * get_floor_normal()
+		target_visual_pitch = clampf(atan2(local_floor_normal.z, local_floor_normal.y), -0.22, 0.22)
+		target_visual_roll = clampf(-atan2(local_floor_normal.x, local_floor_normal.y), -0.16, 0.16)
+	else:
+		target_visual_pitch = clampf(velocity.y * 0.035, -0.14, 0.14)
+	car_model.rotation.x = lerp_angle(car_model.rotation.x, target_visual_pitch, clampf(6.0 * delta, 0.0, 1.0))
+	car_model.rotation.z = lerp_angle(car_model.rotation.z, target_visual_roll, clampf(7.5 * delta, 0.0, 1.0))
 	_animate_wheels(delta)
 
 	for index in get_slide_collision_count():
@@ -120,6 +195,21 @@ func _physics_process(delta: float) -> void:
 			var target_rotation := atan2(-slide_direction.x, -slide_direction.z)
 			rotation.y = lerp_angle(rotation.y, target_rotation, clampf(8.0 * delta, 0.0, 1.0))
 			break
+
+func _recover_from_fall() -> void:
+	if has_safe_position:
+		global_position = last_safe_position + Vector3.UP * 0.45
+		rotation = Vector3(0.0, last_safe_rotation_y, 0.0)
+	else:
+		global_position = Vector3(-190.72, 2.0, -119.35)
+		rotation = Vector3.ZERO
+	velocity = Vector3.ZERO
+	forward_speed = 0.0
+	current_steering = 0.0
+	floor_snap_length = 1.0
+	visual_bounce_height = 0.0
+	visual_bounce_velocity = 0.0
+	car_model.position = model_base_position
 
 func _animate_wheels(delta: float) -> void:
 	var spin_amount := forward_speed * delta / 0.25

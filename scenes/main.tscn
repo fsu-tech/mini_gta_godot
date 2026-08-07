@@ -86,6 +86,37 @@ height = 0.15
 height = 1.0
 radius = 1.7
 
+[sub_resource type="StyleBoxFlat" id="MissionEndPanel"]
+bg_color = Color(0.025, 0.04, 0.055, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.72, 0.2, 0.8)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="MissionEndButton"]
+bg_color = Color(0.08, 0.105, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72, 0.2, 0.65)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="MissionEndButtonHover"]
+bg_color = Color(0.92, 0.62, 0.14, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="Main" type="Node3D" unique_id=1633077004]
 script = ExtResource("2")
 
@@ -184,7 +215,7 @@ transform = Transform3D(0.31631148, 0, -0.94865537, 0, 1, 0, 0.94865537, 0, 0.31
 script = ExtResource("4")
 
 [node name="Model" parent="Car" unique_id=155139571 instance=ExtResource("5")]
-transform = Transform3D(0.0042, 0, 0, 0, 0.0042, 0, 0, 0, 0.0042, 0, -0.1, 0)
+transform = Transform3D(0.0042, 0, 0, 0, 0.0042, 0, 0, 0, 0.0042, 0, -0.19, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Car" unique_id=1415173943]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38, 0)
@@ -271,6 +302,93 @@ theme_override_font_sizes/font_size = 26
 text = "6 / 6"
 horizontal_alignment = 2
 
+[node name="MissionEnd" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shade" type="ColorRect" parent="UI/MissionEnd"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.76)
+
+[node name="Panel" type="PanelContainer" parent="UI/MissionEnd"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -205.0
+offset_right = 270.0
+offset_bottom = 205.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("MissionEndPanel")
+
+[node name="Content" type="VBoxContainer" parent="UI/MissionEnd/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/MissionEnd/Panel/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.76, 0.22, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 38
+text = "MISIÓN COMPLETADA"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="UI/MissionEnd/Panel/Content"]
+layout_mode = 2
+
+[node name="Message" type="Label" parent="UI/MissionEnd/Panel/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.92, 0.94, 1)
+theme_override_font_sizes/font_size = 21
+text = "Has llegado al marcador y completado tu objetivo."
+horizontal_alignment = 1
+
+[node name="Reward" type="Label" parent="UI/MissionEnd/Panel/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 1, 0.48, 1)
+theme_override_font_sizes/font_size = 30
+text = "+ $500"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/MissionEnd/Panel/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.03, 0.035, 0.04, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("MissionEndButton")
+theme_override_styles/hover = SubResource("MissionEndButtonHover")
+theme_override_styles/pressed = SubResource("MissionEndButtonHover")
+theme_override_styles/focus = SubResource("MissionEndButtonHover")
+text = "JUGAR DE NUEVO"
+
+[node name="MenuButton" type="Button" parent="UI/MissionEnd/Panel/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.03, 0.035, 0.04, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("MissionEndButton")
+theme_override_styles/hover = SubResource("MissionEndButtonHover")
+theme_override_styles/pressed = SubResource("MissionEndButtonHover")
+theme_override_styles/focus = SubResource("MissionEndButtonHover")
+text = "VOLVER AL MENÚ"
+
 [node name="Radar" type="Control" parent="UI" unique_id=1745927880]
 layout_mode = 3
 anchors_preset = 0
@@ -309,3 +427,6 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 17
 text = "CALCULANDO..."
 horizontal_alignment = 1
+
+[connection signal="pressed" from="UI/MissionEnd/Panel/Content/RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="UI/MissionEnd/Panel/Content/MenuButton" to="." method="_on_main_menu_pressed"]

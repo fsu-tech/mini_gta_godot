@@ -5,14 +5,19 @@ extends Node3D
 @onready var player = $Player
 @onready var car = $Car
 @onready var help_label: Label = $UI/HelpLabel
+@onready var mission_end: Control = $UI/MissionEnd
+@onready var mission_end_panel: PanelContainer = $UI/MissionEnd/Panel
 
 var current_vehicle
+var mission_finished := false
 
 func _ready() -> void:
     marker.completed.connect(_on_mission_completed)
     mission_label.text = "MISIÓN: ve al marcador amarillo"
 
 func _process(_delta: float) -> void:
+    if mission_finished:
+        return
     if current_vehicle:
         help_label.text = "FLECHAS/WASD: conducir  |  E: salir"
         if Input.is_action_just_pressed("interact"):
@@ -38,4 +43,27 @@ func _exit_car() -> void:
     current_vehicle = null
 
 func _on_mission_completed() -> void:
+    if mission_finished:
+        return
+    mission_finished = true
     mission_label.text = "MISIÓN COMPLETADA  +$500"
+    help_label.text = ""
+    if current_vehicle:
+        car.set_controlled(false)
+    player.controls_enabled = false
+    player.velocity = Vector3.ZERO
+    Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    mission_end.visible = true
+    mission_end.modulate.a = 0.0
+    mission_end_panel.position.y += 35.0
+    var tween := create_tween().set_parallel(true)
+    tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.tween_property(mission_end, "modulate:a", 1.0, 0.55)
+    tween.tween_property(mission_end_panel, "position:y", mission_end_panel.position.y - 35.0, 0.55)
+    $UI/MissionEnd/Panel/Content/RestartButton.grab_focus()
+
+func _on_restart_pressed() -> void:
+    get_tree().reload_current_scene()
+
+func _on_main_menu_pressed() -> void:
+    get_tree().change_scene_to_file("res://scenes/start.tscn")
