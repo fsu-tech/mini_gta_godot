@@ -1,0 +1,6 @@
+# Godot genera esta caché local al importar el proyecto.
+.godot/
+
+# Archivos del sistema operativo.
+.DS_Store
+Thumbs.db
