@@ -1,5 +1,7 @@
 extends Node3D
 
+const DAMAGEABLE_BUILDING := preload("res://scripts/damageable_building.gd")
+
 var asphalt := StandardMaterial3D.new()
 var sidewalk := StandardMaterial3D.new()
 var line_white := StandardMaterial3D.new()
@@ -60,6 +62,7 @@ func _create_city_blocks() -> void:
 func _add_building(node_name: String, ground_position: Vector3, size: Vector3, material: Material) -> void:
     var body := StaticBody3D.new()
     body.name = node_name
+    body.set_script(DAMAGEABLE_BUILDING)
     body.position = ground_position + Vector3.UP * size.y * 0.5
     add_child(body)
 
