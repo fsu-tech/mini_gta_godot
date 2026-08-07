@@ -12,6 +12,10 @@
 [ext_resource type="PackedScene" uid="uid://csfweitp5b6ca" path="res://assets/remy/Walking.fbx" id="11"]
 [ext_resource type="PackedScene" uid="uid://ch40pfrqncibo" path="res://assets/remy/Running.fbx" id="12"]
 [ext_resource type="Script" uid="uid://c6xyw0riua8ds" path="res://scripts/remy_controller.gd" id="13"]
+[ext_resource type="PackedScene" uid="uid://1yrogkcx46hb" path="res://assets/remy/Pistol Idle.fbx" id="14"]
+[ext_resource type="PackedScene" uid="uid://b35olaysqcjov" path="res://assets/remy/realistic_revolver.glb" id="15"]
+[ext_resource type="PackedScene" uid="uid://dxwhfjxbjlux0" path="res://assets/remy/Pistol Run.fbx" id="16"]
+[ext_resource type="PackedScene" uid="uid://pd1bmyishiaa" path="res://assets/remy/Shooting.fbx" id="17"]
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 1
@@ -124,6 +128,14 @@ script = ExtResource("13")
 
 [node name="RunningModel" parent="Player/Remy" unique_id=7222528 instance=ExtResource("12")]
 
+[node name="PistolIdleModel" parent="Player/Remy" unique_id=670172881 instance=ExtResource("14")]
+
+[node name="Revolver" parent="Player/Remy/PistolIdleModel" unique_id=1786108048 instance=ExtResource("15")]
+
+[node name="PistolRunModel" parent="Player/Remy" unique_id=985656480 instance=ExtResource("16")]
+
+[node name="ShootingModel" parent="Player/Remy" unique_id=1721948934 instance=ExtResource("17")]
+
 [node name="Body" type="MeshInstance3D" parent="Player" unique_id=130032468]
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0.025, 0)
 visible = false
@@ -218,7 +230,46 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 20
-text = "WASD: moverse  |  Espacio: saltar"
+text = "WASD: moverse  |  Espacio: saltar  |  R: equipar  |  Clic izq.: disparar"
+
+[node name="Crosshair" type="Label" parent="UI" unique_id=2127610984]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -18.0
+offset_right = 12.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AmmoLabel" type="Label" parent="UI" unique_id=1933783194]
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -70.0
+offset_right = -28.0
+offset_bottom = -25.0
+theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 26
+text = "6 / 6"
+horizontal_alignment = 2
 
 [node name="Radar" type="Control" parent="UI" unique_id=1745927880]
 layout_mode = 3
