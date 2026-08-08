@@ -4,10 +4,12 @@ extends Control
 @export var player_path: NodePath
 @export var car_path: NodePath
 @export var marker_path: NodePath
+@export var target_path: NodePath
 
 @onready var player: Node3D = get_node(player_path)
 @onready var car: Node3D = get_node(car_path)
 @onready var marker: Node3D = get_node(marker_path)
+@onready var target: Node3D = get_node(target_path)
 @onready var distance_label: Label = $Distance
 @onready var trend_label: Label = $Trend
 
@@ -38,24 +40,27 @@ func _draw() -> void:
     _draw_car(_radar_position(focus, car), car.global_rotation.y)
     if player.visible:
         _draw_dot(_radar_position(focus, player), Color.WHITE, 5.0)
-    if marker.visible:
-        var marker_position := _radar_position(focus, marker)
+    var objective := target if target.visible else marker
+    if objective.visible:
+        var marker_position := _radar_position(focus, objective)
         var pulse := 10.0 + sin(Time.get_ticks_msec() * 0.008) * 3.0
-        draw_line(CENTER, marker_position, Color(1.0, 0.82, 0.05, 0.38), 2.0)
-        draw_circle(marker_position, pulse, Color(1.0, 0.72, 0.0, 0.24))
-        _draw_dot(marker_position, Color(1.0, 0.82, 0.05), 5.0)
+        var objective_color := Color(1.0, 0.2, 0.12) if objective == target else Color(1.0, 0.82, 0.05)
+        draw_line(CENTER, marker_position, Color(objective_color, 0.38), 2.0)
+        draw_circle(marker_position, pulse, Color(objective_color, 0.24))
+        _draw_dot(marker_position, objective_color, 5.0)
 
 
 func _update_approach(delta: float) -> void:
-    if not marker.visible:
+    var objective := target if target.visible else marker
+    if not objective.visible:
         distance_label.text = "OBJETIVO COMPLETADO"
         trend_label.text = ""
         return
 
     var focus := car if not player.visible else player
-    var difference := marker.global_position - focus.global_position
+    var difference := objective.global_position - focus.global_position
     var distance := Vector2(difference.x, difference.z).length()
-    distance_label.text = "%d METROS" % roundi(distance)
+    distance_label.text = "CH26: %d M" % roundi(distance) if objective == target else "%d METROS" % roundi(distance)
     sample_time += delta
     if sample_time < 0.4:
         return
