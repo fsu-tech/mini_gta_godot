@@ -45,7 +45,8 @@ func _ready() -> void:
 	floor_snap_length = 1.0
 	# Las pendientes normales son suelo; bordillos y laterales pronunciados son paredes.
 	floor_max_angle = deg_to_rad(22.0)
-	floor_stop_on_slope = false
+	# Un coche aparcado no debe deslizarse por la pendiente de la calle.
+	floor_stop_on_slope = true
 	for child in $Model.find_children("*", "Node3D", true, false):
 		var wheel := child as Node3D
 		if wheel and String(wheel.name) in ["rear wheel", "rear wheel.001", "rear wheel.002", "rear wheel.003"]:
@@ -157,10 +158,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		forward_speed = move_toward(forward_speed, 0.0, braking * delta)
 		current_steering = move_toward(current_steering, 0.0, steering_response * delta)
+		if was_on_floor:
+			velocity = Vector3.ZERO
 
 	velocity.x = forward.x * forward_speed
 	velocity.z = forward.z * forward_speed
 	move_and_slide()
+	_damage_vehicle_targets()
 	if is_on_floor() and get_floor_normal().y >= 0.92:
 		last_safe_position = global_position
 		last_safe_rotation_y = rotation.y
@@ -201,6 +205,16 @@ func _physics_process(delta: float) -> void:
 			var target_rotation := atan2(-slide_direction.x, -slide_direction.z)
 			rotation.y = lerp_angle(rotation.y, target_rotation, clampf(8.0 * delta, 0.0, 1.0))
 			break
+
+func _damage_vehicle_targets() -> void:
+	var impact_speed := absf(forward_speed)
+	if impact_speed < 2.5:
+		return
+	for index in get_slide_collision_count():
+		var collision := get_slide_collision(index)
+		var collider := collision.get_collider()
+		if collider and collider.has_method("take_vehicle_hit"):
+			collider.take_vehicle_hit(impact_speed)
 
 func _recover_from_fall() -> void:
 	if has_safe_position:

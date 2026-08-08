@@ -1,5 +1,11 @@
 extends CharacterBody3D
 
+@export var fall_recovery_distance := 8.0
+
+var last_safe_position: Vector3
+var last_safe_rotation_y := 0.0
+var has_safe_position := false
+
 const CROSSHAIR_SCRIPT := preload("res://scripts/crosshair.gd")
 const IMPACT_DEBRIS := preload("res://scripts/impact_debris.gd")
 
@@ -187,7 +193,20 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target_z, acceleration * delta)
 
 	move_and_slide()
+	if is_on_floor() and get_floor_normal().y >= 0.9:
+		last_safe_position = global_position
+		last_safe_rotation_y = rotation.y
+		has_safe_position = true
+	var recovery_height := last_safe_position.y - fall_recovery_distance if has_safe_position else -8.0
+	if global_position.y < recovery_height:
+		_recover_from_fall()
+		return
 	remy.set_motion(is_moving, is_running)
+
+func _recover_from_fall() -> void:
+	global_position = last_safe_position + Vector3.UP * 0.5 if has_safe_position else Vector3(-193.09, 2.7, -118.55)
+	rotation.y = last_safe_rotation_y if has_safe_position else 0.0
+	velocity = Vector3.ZERO
 
 func _try_shoot() -> void:
 	if not pistol_camera_active or armed_run_camera_active or shot_cooldown > 0.0 or reload_remaining > 0.0:
