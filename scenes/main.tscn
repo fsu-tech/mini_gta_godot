@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://b35olaysqcjov" path="res://assets/remy/realistic_revolver.glb" id="15"]
 [ext_resource type="PackedScene" uid="uid://dxwhfjxbjlux0" path="res://assets/remy/Pistol Run.fbx" id="16"]
 [ext_resource type="PackedScene" uid="uid://pd1bmyishiaa" path="res://assets/remy/Shooting.fbx" id="17"]
+[ext_resource type="Script" uid="uid://ca8ju3ea7a7cp" path="res://scripts/mobile_controls.gd" id="18_mobile"]
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 1
@@ -126,6 +127,7 @@ environment = SubResource("Env")
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1765449990]
 transform = Transform3D(0.90630776, 0.34618863, -0.24240388, 0, 0.57357645, 0.81915206, 0.42261827, -0.74240386, 0.5198368, 0, 0, 0)
 shadow_enabled = true
+directional_shadow_max_distance = 140.0
 
 [node name="City" type="Node3D" parent="." unique_id=553589052]
 transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 274.72, 0, 63.35)
@@ -208,6 +210,7 @@ spring_length = 2.2
 margin = 0.2
 
 [node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D" unique_id=68948580]
+far = 650.0
 current = true
 
 [node name="Car" type="CharacterBody3D" parent="." unique_id=1869114778]
@@ -229,6 +232,7 @@ spring_length = 7.0
 margin = 0.25
 
 [node name="Camera3D" type="Camera3D" parent="Car/CameraPivot/SpringArm3D" unique_id=1437776693]
+far = 650.0
 
 [node name="MissionMarker" type="Area3D" parent="." unique_id=84393505]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.7, 1, 193.35)
@@ -242,6 +246,10 @@ mesh = SubResource("MarkerMesh")
 shape = SubResource("MarkerCol")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1845878619]
+
+[node name="MobileControls" type="CanvasLayer" parent="."]
+layer = 20
+script = ExtResource("18_mobile")
 
 [node name="MissionLabel" type="Label" parent="UI" unique_id=632295703]
 offset_left = 24.0

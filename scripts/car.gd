@@ -17,6 +17,7 @@ extends CharacterBody3D
 @export var fall_recovery_distance := 0.65
 
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
+@onready var camera_pivot: Node3D = $CameraPivot
 @onready var car_model: Node3D = $Model
 
 var controlled := false
@@ -90,6 +91,11 @@ func set_controlled(value: bool) -> void:
 	controlled = value
 	if value:
 		camera.current = true
+
+func apply_mobile_look(relative: Vector2, sensitivity: float) -> void:
+	camera_pivot.rotate_y(-relative.x * sensitivity)
+	camera_pivot.rotate_x(-relative.y * sensitivity)
+	camera_pivot.rotation.x = clampf(camera_pivot.rotation.x, deg_to_rad(-35.0), deg_to_rad(20.0))
 
 func _physics_process(delta: float) -> void:
 	var forward := -global_transform.basis.z

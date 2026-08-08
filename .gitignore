@@ -1,5 +1,7 @@
 # Godot genera esta caché local al importar el proyecto.
 .godot/
+build/
+.godot_download/
 
 # Archivos del sistema operativo.
 .DS_Store

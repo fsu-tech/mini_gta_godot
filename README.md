@@ -32,3 +32,20 @@ Pon modelos `.glb`/`.gltf` dentro de `assets/` y arrástralos a la escena desde 
 
 ## Coche
 Acércate al coche y pulsa `E`. Mientras conduces, usa `WASD`; pulsa `E` otra vez para salir.
+# Prueba en Android
+
+El juego mantiene los controles de PC y activa automáticamente la interfaz táctil en Android:
+
+- Joystick izquierdo: caminar; al llevarlo al borde, correr.
+- Arrastrar en la zona derecha: mover la cámara.
+- `SALTAR`, `ACCIÓN`, `ARMA` y `DISPARAR`: acciones a pie.
+- Dentro del coche, el joystick controla dirección y aceleración y `SALIR` abandona el vehículo.
+- En PC se puede pulsar `F10` para mostrar u ocultar la previsualización táctil.
+
+Para probar por USB:
+
+1. Instalar las plantillas de exportación de la misma versión de Godot.
+2. En Godot, configurar Java SDK Path y Android SDK Path.
+3. Activar Opciones de desarrollador y Depuración USB en el teléfono.
+4. Conectar el teléfono, aceptar la huella RSA y comprobarlo con `adb devices`.
+5. Abrir el proyecto y usar Ejecutar en dispositivo, o exportar `build/android/mini-gta.apk` e instalarlo con `adb install -r`.

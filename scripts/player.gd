@@ -76,8 +76,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		pivot.rotation.x = clamp(pivot.rotation.x, deg_to_rad(-55), deg_to_rad(45))
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	elif event.is_action_pressed("toggle_pistol"):
+
+func apply_mobile_look(relative: Vector2, sensitivity: float) -> void:
+	mouse_look_time = 0.8
+	rotate_y(-relative.x * sensitivity)
+	pivot.rotate_x(-relative.y * sensitivity)
+	pivot.rotation.x = clamp(pivot.rotation.x, deg_to_rad(-55), deg_to_rad(45))
+
+func mobile_toggle_pistol() -> void:
+	if controls_enabled:
 		_set_pistol_camera(remy.toggle_pistol())
+
+func mobile_shoot() -> void:
+	if controls_enabled:
+		_try_shoot()
 
 func _set_pistol_camera(equipped: bool) -> void:
 	pistol_camera_active = equipped
@@ -136,6 +148,10 @@ func _physics_process(delta: float) -> void:
 	if not controls_enabled:
 		velocity = Vector3.ZERO
 		return
+	if Input.is_action_just_pressed("toggle_pistol"):
+		mobile_toggle_pistol()
+	if Input.is_action_just_pressed("shoot"):
+		mobile_shoot()
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	elif Input.is_action_just_pressed("jump"):
@@ -161,7 +177,7 @@ func _physics_process(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, movement_heading, clampf(turn_speed * delta, 0.0, 1.0))
 		pivot.rotation.y = lerp_angle(pivot.rotation.y, 0.0, clampf(8.0 * delta, 0.0, 1.0))
 
-	var is_running := Input.is_key_pressed(KEY_SHIFT)
+	var is_running := Input.is_action_pressed("run") or Input.is_key_pressed(KEY_SHIFT)
 	var is_moving := not is_zero_approx(input_vec.length())
 	_update_armed_run_camera(is_moving, is_running)
 	var movement_speed := run_speed if is_running else walk_speed
